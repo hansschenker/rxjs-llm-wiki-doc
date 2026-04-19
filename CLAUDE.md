@@ -17,7 +17,7 @@ wiki/
   architecture/     ← hot/cold, Subject types, sharing, multicasting
   internals/        ← scheduler mechanics, lift(), SafeSubscriber
   course-scripts/   ← narration scripts and lesson outlines
-raw/                ← immutable sources, never modified
+raw/                ← all source documents, flat — paste anything here, never modified
 ```
 
 Reference implementation: `C:/Users/HP/Web/Frontend/rxjs/rxjs-wiki/`

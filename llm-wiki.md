@@ -33,12 +33,7 @@ wiki/
   architecture/     ← higher-order design (hot/cold, Subject types, sharing, …)
   internals/        ← scheduler mechanics, VirtualTimeScheduler, lift(), SafeSubscriber, …
   course-scripts/   ← narration scripts and lesson outlines for video courses
-raw/
-  articles/
-  source-code/
-  github-issues/
-  talk-transcripts/
-  course-notes/
+raw/                ← all source documents go here, flat — no subdirectories
 ```
 
 The existing `C:/Users/HP/Web/Frontend/rxjs/rxjs-wiki/` is the reference implementation. New content follows the same conventions already established there.
@@ -52,6 +47,8 @@ The existing `C:/Users/HP/Web/Frontend/rxjs/rxjs-wiki/` is the reference impleme
 - Operator pages follow this structure: purpose → signature → marble diagram → key behaviours → common patterns → pitfalls → related operators.
 
 ## Source types
+
+Paste any of the following directly into `raw/` with a descriptive filename (e.g. `ben-lesh-multicasting.md`, `switchmap-source.ts`):
 
 - **RxJS source code** — operator implementations, scheduler internals, `lift()` pattern
 - **GitHub issues/PRs** — design decisions, deprecation rationale, edge-case discussions (rxjs/rxjs repo)
