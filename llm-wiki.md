@@ -1,75 +1,128 @@
-# LLM Wiki
+# RxJS Advanced Topics Wiki
 
-A pattern for building personal knowledge bases using LLMs.
+A personal knowledge base for advanced RxJS — operators, patterns, architecture, scheduler internals, and multicasting — maintained by Claude Code and browsed in Obsidian.
 
-This is an idea file, it is designed to be copy pasted to your own LLM Agent (e.g. OpenAI Codex, Claude Code, OpenCode / Pi, or etc.). Its goal is to communicate the high level idea, but your agent will build out the specifics in collaboration with you.
+This document is the schema for the wiki: it tells Claude Code how the wiki is structured, what conventions to follow, and what workflows to run when ingesting sources, answering questions, or maintaining the wiki. It evolves as the wiki grows.
 
 ## The core idea
 
-Most people's experience with LLMs and documents looks like RAG: you upload a collection of files, the LLM retrieves relevant chunks at query time, and generates an answer. This works, but the LLM is rediscovering knowledge from scratch on every question. There's no accumulation. Ask a subtle question that requires synthesizing five documents, and the LLM has to find and piece together the relevant fragments every time. Nothing is built up. NotebookLM, ChatGPT file uploads, and most RAG systems work this way.
+Instead of re-deriving knowledge from raw sources on every question (RAG-style), Claude Code **incrementally builds and maintains a persistent wiki** — a structured, interlinked collection of markdown files. When you add a new source, Claude reads it, extracts the key information, and integrates it into the existing wiki — updating operator pages, revising concept summaries, noting contradictions, strengthening the evolving synthesis. The knowledge is compiled once and kept current.
 
-The idea here is different. Instead of just retrieving from raw documents at query time, the LLM **incrementally builds and maintains a persistent wiki** — a structured, interlinked collection of markdown files that sits between you and the raw sources. When you add a new source, the LLM doesn't just index it for later retrieval. It reads it, extracts the key information, and integrates it into the existing wiki — updating entity pages, revising topic summaries, noting where new data contradicts old claims, strengthening or challenging the evolving synthesis. The knowledge is compiled once and then *kept current*, not re-derived on every query.
+The wiki is a **persistent, compounding artifact.** Cross-references are already there. Contradictions have already been flagged. The synthesis reflects everything read so far. The wiki gets richer with every source and every question.
 
-This is the key difference: **the wiki is a persistent, compounding artifact.** The cross-references are already there. The contradictions have already been flagged. The synthesis already reflects everything you've read. The wiki keeps getting richer with every source you add and every question you ask.
-
-You never (or rarely) write the wiki yourself — the LLM writes and maintains all of it. You're in charge of sourcing, exploration, and asking the right questions. The LLM does all the grunt work — the summarizing, cross-referencing, filing, and bookkeeping that makes a knowledge base actually useful over time. In practice, I have the LLM agent open on one side and Obsidian open on the other. The LLM makes edits based on our conversation, and I browse the results in real time — following links, checking the graph view, reading the updated pages. Obsidian is the IDE; the LLM is the programmer; the wiki is the codebase.
-
-This can apply to a lot of different contexts. A few examples:
-
-- **Personal**: tracking your own goals, health, psychology, self-improvement — filing journal entries, articles, podcast notes, and building up a structured picture of yourself over time.
-- **Research**: going deep on a topic over weeks or months — reading papers, articles, reports, and incrementally building a comprehensive wiki with an evolving thesis.
-- **Reading a book**: filing each chapter as you go, building out pages for characters, themes, plot threads, and how they connect. By the end you have a rich companion wiki. Think of fan wikis like [Tolkien Gateway](https://tolkiengateway.net/wiki/Main_Page) — thousands of interlinked pages covering characters, places, events, languages, built by a community of volunteers over years. You could build something like that personally as you read, with the LLM doing all the cross-referencing and maintenance.
-- **Business/team**: an internal wiki maintained by LLMs, fed by Slack threads, meeting transcripts, project documents, customer calls. Possibly with humans in the loop reviewing updates. The wiki stays current because the LLM does the maintenance that no one on the team wants to do.
-- **Competitive analysis, due diligence, trip planning, course notes, hobby deep-dives** — anything where you're accumulating knowledge over time and want it organized rather than scattered.
+You never write the wiki yourself — Claude writes and maintains all of it. You source material, direct the analysis, and ask questions. Claude handles summarizing, cross-referencing, filing, and bookkeeping. In practice: Claude Code on one side, Obsidian on the other. Claude edits files; you browse the result in real time via Obsidian's graph view and follow links.
 
 ## Architecture
 
-There are three layers:
+**Three layers:**
 
-**Raw sources** — your curated collection of source documents. Articles, papers, images, data files. These are immutable — the LLM reads from them but never modifies them. This is your source of truth.
+**Raw sources** — your curated collection of source documents. RxJS source code, GitHub issues, blog posts, conference talks, course notes, your own recordings. Immutable — Claude reads from them but never modifies them. Source of truth.
 
-**The wiki** — a directory of LLM-generated markdown files. Summaries, entity pages, concept pages, comparisons, an overview, a synthesis. The LLM owns this layer entirely. It creates pages, updates them when new sources arrive, maintains cross-references, and keeps everything consistent. You read it; the LLM writes it.
+**The wiki** — a directory of Claude-generated markdown files organized by category (see below). Claude owns this layer entirely: creates pages, updates them when new sources arrive, maintains cross-references, keeps everything consistent.
 
-**The schema** — a document (e.g. CLAUDE.md for Claude Code or AGENTS.md for Codex) that tells the LLM how the wiki is structured, what the conventions are, and what workflows to follow when ingesting sources, answering questions, or maintaining the wiki. This is the key configuration file — it's what makes the LLM a disciplined wiki maintainer rather than a generic chatbot. You and the LLM co-evolve this over time as you figure out what works for your domain.
+**The schema** — this file (`llm-wiki.md`). Tells Claude how the wiki is structured, what conventions to follow, and what workflows to run. You and Claude co-evolve it over time.
+
+## Wiki structure
+
+```
+wiki/
+  index.md          ← content catalog, updated on every ingest
+  log.md            ← append-only chronological record
+  operators/        ← one page per operator (map, switchMap, debounceTime, …)
+  patterns/         ← reusable RxJS patterns (MVU, Effects, polling, retry, …)
+  architecture/     ← higher-order design (hot/cold, Subject types, sharing, …)
+  internals/        ← scheduler mechanics, VirtualTimeScheduler, lift(), SafeSubscriber, …
+  course-scripts/   ← narration scripts and lesson outlines for video courses
+raw/
+  articles/
+  source-code/
+  github-issues/
+  talk-transcripts/
+  course-notes/
+```
+
+The existing `C:/Users/HP/Web/Frontend/rxjs/rxjs-wiki/` is the reference implementation. New content follows the same conventions already established there.
+
+## Page conventions
+
+- **Frontmatter** on every page: `title`, `category`, `tags`, `sources` (list of raw filenames that informed the page), `updated` (date).
+- **Marble diagrams** as ASCII or Marp-compatible code blocks for any time-based operator.
+- **TypeScript examples** with explicit types, `pipe()` chains, `$`-suffix Observables, no `any`.
+- **Cross-references** via standard `[text](../category/page.md)` links — never `[[wikilinks]]` (VitePress/Obsidian-incompatible in rendered output).
+- Operator pages follow this structure: purpose → signature → marble diagram → key behaviours → common patterns → pitfalls → related operators.
+
+## Source types
+
+- **RxJS source code** — operator implementations, scheduler internals, `lift()` pattern
+- **GitHub issues/PRs** — design decisions, deprecation rationale, edge-case discussions (rxjs/rxjs repo)
+- **Blog posts** — Ben Lesh, André Staltz/Cycle.js, Michael Hladky, Netanel Basal
+- **Conference talks** — ng-conf, RxJS Live, AngularConnect transcripts or notes
+- **Your own course notes** — recordings from RxJS Deep Dive, RxJS Insights, Advanced RxJS 4-Layer Model
 
 ## Operations
 
-**Ingest.** You drop a new source into the raw collection and tell the LLM to process it. An example flow: the LLM reads the source, discusses key takeaways with you, writes a summary page in the wiki, updates the index, updates relevant entity and concept pages across the wiki, and appends an entry to the log. A single source might touch 10-15 wiki pages. Personally I prefer to ingest sources one at a time and stay involved — I read the summaries, check the updates, and guide the LLM on what to emphasize. But you could also batch-ingest many sources at once with less supervision. It's up to you to develop the workflow that fits your style and document it in the schema for future sessions.
+### Ingest
 
-**Query.** You ask questions against the wiki. The LLM searches for relevant pages, reads them, and synthesizes an answer with citations. Answers can take different forms depending on the question — a markdown page, a comparison table, a slide deck (Marp), a chart (matplotlib), a canvas. The important insight: **good answers can be filed back into the wiki as new pages.** A comparison you asked for, an analysis, a connection you discovered — these are valuable and shouldn't disappear into chat history. This way your explorations compound in the knowledge base just like ingested sources do.
+When you drop a new source and ask Claude to process it:
 
-**Lint.** Periodically, ask the LLM to health-check the wiki. Look for: contradictions between pages, stale claims that newer sources have superseded, orphan pages with no inbound links, important concepts mentioned but lacking their own page, missing cross-references, data gaps that could be filled with a web search. The LLM is good at suggesting new questions to investigate and new sources to look for. This keeps the wiki healthy as it grows.
+1. Read the source in full.
+2. Discuss key takeaways — confirm what to emphasize before writing.
+3. Write or update pages in the appropriate `wiki/` category.
+4. Update `wiki/index.md` with any new pages.
+5. Update cross-references on related pages.
+6. Append an entry to `wiki/log.md`: `## [YYYY-MM-DD] ingest | Source Title`.
+
+A single source typically touches 5–15 wiki pages. Ingest one source at a time; stay involved — read the summaries and guide emphasis.
+
+### Query
+
+Ask questions against the wiki:
+
+1. Read `wiki/index.md` first to find relevant pages.
+2. Drill into those pages and synthesize an answer with citations.
+3. **File valuable answers back into the wiki** as new pages (a comparison you asked for, a pattern you discovered, an architectural insight). Answers that disappear into chat history are wasted.
+
+Output formats depending on the question:
+- **Markdown page** — default for concepts, patterns, operator deep-dives
+- **Marp slide deck** — for course content and presentations (file under `wiki/course-scripts/`)
+- **Marble diagram** — for any time-based or ordering question
+- **Comparison table** — for operator selection decisions
+
+### Export to script
+
+When you want to turn a wiki page or topic cluster into a course narration script:
+
+1. Identify the relevant wiki pages.
+2. Synthesize them into an insight-driven narration script (not an operator catalog — lead with the *why* and the mental model, not the API).
+3. File the script under `wiki/course-scripts/` and link it from `wiki/index.md`.
+4. Cross-reference the source pages so the script stays traceable.
+
+Style for scripts: insight-driven, conversational, senior-developer register. Reference the RxJS Insights course scripts as the style benchmark.
+
+### Lint
+
+Periodically health-check the wiki:
+
+- Contradictions between pages (e.g. two pages disagreeing on scheduler behaviour)
+- Stale claims superseded by newer RxJS versions (check against current rxjs@7.8.x)
+- Orphan pages with no inbound links
+- Operators or patterns mentioned but lacking their own page
+- Missing cross-references between related operators
+- Data gaps that a targeted web search could fill
 
 ## Indexing and logging
 
-Two special files help the LLM (and you) navigate the wiki as it grows. They serve different purposes:
+**`wiki/index.md`** — catalog of every page: link, one-line summary, category, tag list. Updated on every ingest. Claude reads this first on every query to find relevant pages.
 
-**index.md** is content-oriented. It's a catalog of everything in the wiki — each page listed with a link, a one-line summary, and optionally metadata like date or source count. Organized by category (entities, concepts, sources, etc.). The LLM updates it on every ingest. When answering a query, the LLM reads the index first to find relevant pages, then drills into them. This works surprisingly well at moderate scale (~100 sources, ~hundreds of pages) and avoids the need for embedding-based RAG infrastructure.
+**`wiki/log.md`** — append-only record. Prefix format: `## [YYYY-MM-DD] operation | title` (ingest / query / lint / script). Grep-friendly: `grep "^## \[" wiki/log.md | tail -10` gives the last 10 entries.
 
-**log.md** is chronological. It's an append-only record of what happened and when — ingests, queries, lint passes. A useful tip: if each entry starts with a consistent prefix (e.g. `## [2026-04-02] ingest | Article Title`), the log becomes parseable with simple unix tools — `grep "^## \[" log.md | tail -5` gives you the last 5 entries. The log gives you a timeline of the wiki's evolution and helps the LLM understand what's been done recently.
+## Tooling
 
-## Optional: CLI tools
+- **Obsidian** — browse the wiki, graph view to see connections, Marp plugin for slide preview, Dataview plugin for frontmatter queries.
+- **Obsidian Web Clipper** — clip articles to markdown for `raw/articles/`.
+- **Claude Code** — all wiki writes happen here. Obsidian is read-only from Claude's perspective; Claude is the programmer, the wiki is the codebase.
+- The wiki is a git repo — version history, branching, and diffing come for free.
 
-At some point you may want to build small tools that help the LLM operate on the wiki more efficiently. A search engine over the wiki pages is the most obvious one — at small scale the index file is enough, but as the wiki grows you want proper search. [qmd](https://github.com/tobi/qmd) is a good option: it's a local search engine for markdown files with hybrid BM25/vector search and LLM re-ranking, all on-device. It has both a CLI (so the LLM can shell out to it) and an MCP server (so the LLM can use it as a native tool). You could also build something simpler yourself — the LLM can help you vibe-code a naive search script as the need arises.
+## Why this works for RxJS
 
-## Tips and tricks
-
-- **Obsidian Web Clipper** is a browser extension that converts web articles to markdown. Very useful for quickly getting sources into your raw collection.
-- **Download images locally.** In Obsidian Settings → Files and links, set "Attachment folder path" to a fixed directory (e.g. `raw/assets/`). Then in Settings → Hotkeys, search for "Download" to find "Download attachments for current file" and bind it to a hotkey (e.g. Ctrl+Shift+D). After clipping an article, hit the hotkey and all images get downloaded to local disk. This is optional but useful — it lets the LLM view and reference images directly instead of relying on URLs that may break. Note that LLMs can't natively read markdown with inline images in one pass — the workaround is to have the LLM read the text first, then view some or all of the referenced images separately to gain additional context. It's a bit clunky but works well enough.
-- **Obsidian's graph view** is the best way to see the shape of your wiki — what's connected to what, which pages are hubs, which are orphans.
-- **Marp** is a markdown-based slide deck format. Obsidian has a plugin for it. Useful for generating presentations directly from wiki content.
-- **Dataview** is an Obsidian plugin that runs queries over page frontmatter. If your LLM adds YAML frontmatter to wiki pages (tags, dates, source counts), Dataview can generate dynamic tables and lists.
-- The wiki is just a git repo of markdown files. You get version history, branching, and collaboration for free.
-
-## Why this works
-
-The tedious part of maintaining a knowledge base is not the reading or the thinking — it's the bookkeeping. Updating cross-references, keeping summaries current, noting when new data contradicts old claims, maintaining consistency across dozens of pages. Humans abandon wikis because the maintenance burden grows faster than the value. LLMs don't get bored, don't forget to update a cross-reference, and can touch 15 files in one pass. The wiki stays maintained because the cost of maintenance is near zero.
-
-The human's job is to curate sources, direct the analysis, ask good questions, and think about what it all means. The LLM's job is everything else.
-
-The idea is related in spirit to Vannevar Bush's Memex (1945) — a personal, curated knowledge store with associative trails between documents. Bush's vision was closer to this than to what the web became: private, actively curated, with the connections between documents as valuable as the documents themselves. The part he couldn't solve was who does the maintenance. The LLM handles that.
-
-
-## Note
-
-This document is intentionally abstract. It describes the idea, not a specific implementation. The exact directory structure, the schema conventions, the page formats, the tooling — all of that will depend on your domain, your preferences, and your LLM of choice. Everything mentioned above is optional and modular — pick what's useful, ignore what isn't. For example: your sources might be text-only, so you don't need image handling at all. Your wiki might be small enough that the index file is all you need, no search engine required. You might not care about slide decks and just want markdown pages. You might want a completely different set of output formats. The right way to use this is to share it with your LLM agent and work together to instantiate a version that fits your needs. The document's only job is to communicate the pattern. Your LLM can figure out the rest.
+RxJS has a large, interconnected operator surface. The relationships between operators (switchMap vs exhaustMap vs concatMap, Subject vs BehaviorSubject vs ReplaySubject, hot vs cold) are what matter for expertise — not the individual APIs. A wiki that maintains those cross-references persistently is far more useful than re-deriving them from docs on every question. The scheduler internals, the lift() pattern, the multicasting story — these require synthesizing source code, design docs, and community knowledge. A compounding wiki handles this naturally; RAG does not.
